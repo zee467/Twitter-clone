@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf import FlaskForm
@@ -49,9 +49,12 @@ def profile():
 def timeline():
     return render_template("timeline.html")
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
     form = RegisterForm()
+    if form.validate_on_submit():
+        return f"Name: {form.name.data}, Username: {form.username.data}, Password: {form.password.data}"
+
     return render_template("register.html", form=form)
 
 
