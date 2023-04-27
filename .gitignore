@@ -3,3 +3,4 @@ note.txt
 .flaskenv
 /__pycache__
 engage.db
+/migrations
