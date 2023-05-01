@@ -1,6 +1,7 @@
 note.txt
 /venv
 .flaskenv
+.env
 /__pycache__
 engage.db
 /migrations
