@@ -9,13 +9,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import cloudinary
 from cloudinary.uploader import upload
 from dotenv import load_dotenv
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 import os
-
-# Load environment variables from .env file
-load_dotenv()
 
 # instantiate flask app
 app = Flask(__name__)
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure Cloudinary
 cloudinary.config(
@@ -25,10 +26,12 @@ cloudinary.config(
     secure=True
 )
 
-
 # app configurations
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+
+# instantiate login manager
+login_manager = LoginManager(app)
 
 
 # initialize the app with the extension
@@ -36,12 +39,17 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # Create user model
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     username = db.Column(db.String(30))
     image = db.Column(db.String(100))
     password = db.Column(db.String(50))
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
 # Register form
@@ -59,13 +67,31 @@ class LoginForm(FlaskForm):
 
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def index(): 
     form = LoginForm()
 
     if form.validate_on_submit():
         return f'<h1>Username: {form.username.data}, Password: {form.password.data}, Remember: {form.remember.data}</h1>'
     return render_template("index.html", form=form)
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if not user:
+            return "Login Failed"
+        
+        if check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+
+            return redirect(url_for('profile'))
+        return "Login Failed"
+
+    return redirect(url_for('index'))
 
 @app.route("/profile")
 def profile():
