@@ -54,15 +54,15 @@ def load_user(user_id):
 
 # Register form
 class RegisterForm(FlaskForm):
-    name = StringField('Full name', validators=[InputRequired('A full name is required.'), Length(max=100, message='Your name cant be more than 100 characters.')])
-    username = StringField('Username', validators=[InputRequired('Username is required.'), Length(max=30, message='Your username is too')])
+    name = StringField('Full name', validators=[InputRequired('A full name is required.'), Length(max=100, message='Your name can\'t be more than 100 characters.')])
+    username = StringField('Username', validators=[InputRequired('Username is required.'), Length(max=30, message='Your username has too many characters.')])
     password = PasswordField('Password', validators=[InputRequired('A password is required.')])
-    profile_image = FileField('Profile image', validators=[FileAllowed(['jpg', 'png', 'jpeg'], message='Only images are allowed')])
+    profile_image = FileField('Profile image', validators=[FileAllowed(['jpg', 'png', 'jpeg'], message='Only images are allowed.')])
 
 
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[InputRequired()])
-    password = PasswordField('Password', validators=[])
+    username = StringField('Username', validators=[InputRequired('Username is required.'), Length(max=30, message='Your username has too many characters.')])
+    password = PasswordField('Password', validators=[InputRequired('A password is required.')])
     remember = BooleanField("Remember me")
 
 
@@ -71,19 +71,16 @@ class LoginForm(FlaskForm):
 def index(): 
     form = LoginForm()
 
-    if form.validate_on_submit():
-        return f'<h1>Username: {form.username.data}, Password: {form.password.data}, Remember: {form.remember.data}</h1>'
     return render_template("index.html", form=form)
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
-
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if not user:
-            return "Login Failed"
+            return render_template("index.html", form=form, message="Login Failed!")
         
         if check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
@@ -91,7 +88,8 @@ def login():
             return redirect(url_for('profile'))
         return "Login Failed"
 
-    return redirect(url_for('index'))
+    # executes if the form's validation returns False or if it is a get request
+    return render_template("login.html", form=form)
 
 @app.route("/profile")
 def profile():

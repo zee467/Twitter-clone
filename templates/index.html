@@ -42,7 +42,7 @@
 				<div class="collapse navbar-collapse navbar-ex1-collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li class=""><a href="./register.html">Sign Up</a></li>
-						<li class=""><a href="#login" data-toggle="modal" data-keyboard="false">Login</a></li>
+						<li class=""><a href="{{ url_for('login') }}">Login</a></li>
 					</ul>
 				</div><!-- /.navbar-collapse -->
 			</div>
@@ -65,27 +65,6 @@
 											<a href="./">ENG@GE!</a>
 										</h3>
 									</div>
-									<form action="{{ url_for('login') }}" method="POST">
-										{{ form.csrf_token }}
-										<div class="form-group">
-											{{ form.username(class='form-control', placeholder='Username')}}
-										</div>
-										<div class="form-group">
-											{{ form.password(class='form-control', placeholder='Password')}}
-										</div>
-										<div class="form-group">
-											<div class="checkbox-inline">
-												<label>
-													{{ form.remember }}
-													Remember Me
-												</label>
-											</div>
-										</div>
-										
-										<div class="form-group">
-											<button type="submit" class="btn btn-danger btn-block">Login</button>
-										</div>
-									</form>
 								</div>
 							</div>
 						</div>
