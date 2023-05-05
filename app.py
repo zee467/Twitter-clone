@@ -3,8 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField
+from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Length
+from werkzeug.security import check_password_hash, generate_password_hash
 import cloudinary
 from cloudinary.uploader import upload
 from dotenv import load_dotenv
@@ -51,10 +52,20 @@ class RegisterForm(FlaskForm):
     profile_image = FileField('Profile image', validators=[FileAllowed(['jpg', 'png', 'jpeg'], message='Only images are allowed')])
 
 
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[InputRequired()])
+    password = PasswordField('Password', validators=[])
+    remember = BooleanField("Remember me")
 
-@app.route("/")
+
+
+@app.route("/", methods=["GET", "POST"])
 def index(): 
-    return render_template("index.html")
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        return f'<h1>Username: {form.username.data}, Password: {form.password.data}, Remember: {form.remember.data}</h1>'
+    return render_template("index.html", form=form)
 
 @app.route("/profile")
 def profile():
@@ -79,7 +90,12 @@ def register():
             # Upload the file to Cloudinary
             upload_result = upload(file_to_upload, public_id=file_path)
 
-        return f"Full Name: {form.name.data}, Username: {form.username.data}"
+        new_user = User(name=form.name.data, username=form.username.data, password=generate_password_hash(form.password.data))
+        
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for('profile'))
 
     
     return render_template("register.html", form=form)
