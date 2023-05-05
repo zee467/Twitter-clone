@@ -49,6 +49,12 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(50))
     join_date = db.Column(db.DateTime)
 
+# Create tweet model
+class Tweet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.ForeignKey('user.id'))
+    text = db.Column(db.String(140))
+    date_created = db.Column(db.DateTime)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -112,6 +118,7 @@ def logout():
     return redirect(url_for('index.html'))
 
 @app.route("/timeline")
+@login_required
 def timeline():
     return render_template("timeline.html")
 
